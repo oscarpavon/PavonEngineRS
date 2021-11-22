@@ -42,6 +42,8 @@ pub fn pe_renderer_init() {
 
     let event_loop = EventLoop::new();
     let surface = WindowBuilder::new()
+        .with_title("PavonEngine")
+        .with_resizable(false)
         .build_vk_surface(&event_loop, instance.clone())
         .unwrap();
     
@@ -90,9 +92,12 @@ pub fn pe_renderer_init() {
         )
         .unwrap()
     };
-    
+   
+
+
+
     let vertices = VERTICES.iter().cloned();
-    let vertex_buffer =
+    let vertex_buffer2 =
         CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, vertices)
             .unwrap();
 
@@ -104,7 +109,37 @@ pub fn pe_renderer_init() {
     let index_buffer =
         CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(), false, indices).unwrap();
 
-    let uniform_buffer = CpuBufferPool::<vs::ty::Data>::new(device.clone(), BufferUsage::all());
+    //let uniform_buffer = CpuBufferPool::<vs::ty::Data>::new(device.clone(), BufferUsage::all());
+
+    
+    // We now create a buffer that will store the shape of our triangle.
+    let vertex_buffer = {
+        #[derive(Default, Debug, Clone)]
+        struct Vertex {
+            position: [f32; 2],
+        }
+        vulkano::impl_vertex!(Vertex, position);
+
+        CpuAccessibleBuffer::from_iter(
+            device.clone(),
+            BufferUsage::all(),
+            false,
+            [
+                Vertex {
+                    position: [-0.5, -0.25],
+                },
+                Vertex {
+                    position: [0.0, 0.5],
+                },
+                Vertex {
+                    position: [0.25, -0.1],
+                },
+            ]
+            .iter()
+            .cloned(),
+        )
+        .unwrap()
+    };
 
     // The next step is to create the shaders.
     //
