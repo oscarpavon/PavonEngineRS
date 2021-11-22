@@ -16,6 +16,22 @@ pub mod pe_renderer{
 
     use vulkano::command_buffer::AutoCommandBufferBuilder; 
 
+    use vulkano::framebuffer::Framebuffer;
+
+    use vulkano::format::Format;
+   
+    use vulkano::image::Dimensions;
+    use vulkano::image::StorageImage;
+
+    use std::sync::Arc;
+    
+    use vulkano::pipeline::GraphicsPipeline;
+    use vulkano::framebuffer::Subpass;
+    
+    use vulkano::command_buffer::DynamicState;
+    use vulkano::pipeline::viewport::Viewport;
+
+
 
     pub fn pe_renderer_init(){
         let instance = Instance::new(None, &InstanceExtensions::none(), None)
@@ -47,16 +63,30 @@ pub mod pe_renderer{
         let queue = queues.next().unwrap();
         
 
+let render_pass = Arc::new(vulkano::single_pass_renderpass!(device.clone(),
+    attachments: {
+        color: {
+            load: Clear,
+            store: Store,
+            format: Format::R8G8B8A8Unorm,
+            samples: 1,
+        }
+    },
+    pass: {
+        color: [color],
+        depth_stencil: {}
+    }
+).unwrap());
 
-        let source_content = 0 .. 64;
-        let source = CpuAccessibleBuffer::from_iter(device.clone(), 
-                            BufferUsage::all(),
-                            source_content)
-                            .expect("failed to create buffer");
+let image = StorageImage::new(device.clone(), Dimensions::Dim2d { width: 1024, height: 1024 },
+                              Format::R8G8B8A8Unorm, Some(queue.family())).unwrap();
 
-let dest_content = (0 .. 64).map(|_| 0);
-let dest = CpuAccessibleBuffer::from_iter(device.clone(), BufferUsage::all(),
-                                          dest_content).expect("failed to create buffer");
+
+let framebuffer = Arc::new(Framebuffer::start(render_pass.clone())
+    .add(image.clone()).unwrap()
+    .build().unwrap());
+
+
 
 
         println!("Vulkan Renderer init");
