@@ -3,3 +3,4 @@
 
 src/vulkano-examples/
 Cargo.lock
+*.glb
